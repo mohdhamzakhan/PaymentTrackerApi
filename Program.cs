@@ -12,8 +12,24 @@ using PaymentTrackerApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ---- Database ----
+var dbProvider = builder.Configuration["DatabaseProvider"] ?? "SqlServer";
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    switch (dbProvider)
+    {
+        case "PostgreSql":
+            options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"));
+            break;
+        case "Oracle":
+            options.UseOracle(builder.Configuration.GetConnectionString("Oracle"));
+            break;
+        case "SqlServer":
+        default:
+            options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
+            break;
+    }
+});
 
 // ---- Identity (users + roles) ----
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
